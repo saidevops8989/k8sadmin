@@ -1,0 +1,83 @@
+#kubectl run nginx --image=nginx
+pod/nginx created
+
+kuebctl get pods
+
+kubectl describe pod newpods-6rn6n
+
+kubectl get pods -o wide
+
+kubectl delete pod <podname>
+
+kubectl run redis --image=redis123 --dry-run=client -o yaml > redis-definition.yaml
+
+____
+  cat redis-definition.yaml 
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: redis
+  name: redis
+spec:
+  containers:
+  - image: redis123
+    name: redis
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+_____
+
+kubectl create -f redis-definition.yaml
+pod/redis created
+
+kubectl edit pod redis
+chnage--name from redis123 to redis
+
+kubectl get replicaset
+
+kubectl get replicaset
+NAME              DESIRED   CURRENT   READY   AGE
+new-replica-set   4         4         0       20s
+
+kubectl get pods
+
+kubectl delete pod new-replica-set-qkdd9 new-replica-set-f6bhg new-replica-set-m454x new-replica-set-zs99r
+
+cat replicaset-definition-1.yaml 
+__
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: replicaset-1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        tier: frontend
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+
+____
+
+
+kubectl delete -f  replicaset-definition-1.yaml
+
+kubectl scale rs new-replica-set --replicas=2 
+
+
+
+
+
+
+
+
+
