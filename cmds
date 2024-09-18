@@ -73,6 +73,77 @@ kubectl delete -f  replicaset-definition-1.yaml
 
 kubectl scale rs new-replica-set --replicas=2 
 
+kubectl get service
+
+kubectl describe service
+
+kubectl get deployments
+
+cat service-definition-1.yaml 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp-service 
+  namespace: default
+spec:
+  ports:
+  - nodePort: 30080 
+    port: 8080
+    targetPort: 8080 
+  selector:
+    name: simple-webapp
+  type: NodePort
+
+_____
+kubectl get ns
+
+kubectl get pods -n research
+
+kubectl run redis --image=redis -n finance
+
+kubectl get pods -A | grep blue
+
+kubectl run nginx-pod --image=nginx:alpine
+
+kubectl run redis --image=redis:alpine --dry-run=client -oyaml > redis-pod.yaml   0r kubectl run redis -l tier=db --image=redis:alpine
+
+kubectl apply -f redis-pod.yaml
+
+kubectl expose pod redis --port=6379 --name redis-service
+
+kubectl create deployment  webapp --image=kodekloud/webapp-color --replicas=3
+
+kubectl run custom-nginx --image=nginx --port=8080
+
+kubectl create namespace dev-ns
+
+kubectl create deployment redis-deploy --image=redis --replicas=2 -n dev-ns
+
+kubectl run httpd --image=httpd:alpine --port=80 --expose
+
+kubectl get pods --selector env=dev --no-headers | wc -l
+
+kubectl taint nodes node01 spray=mortein:NoSchedule
+
+Create another pod named bee with the nginx image, which has a toleration set to the taint mortein
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bee
+spec:
+  containers:
+  - image: nginx
+    name: bee
+  tolerations:
+  - key: spray
+    value: mortein
+    effect: NoSchedule
+    operator: Equal
+___
+kubectl taint nodes controlplane node-role.kubernetes.io/control-plane:NoSchedule-
+node/controlplane untainted
 
 
 
