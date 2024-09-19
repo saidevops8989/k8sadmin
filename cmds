@@ -1,3 +1,6 @@
+
+rolling update demo - image: kodekloud/webapp-color:v2     v1(blue) v2(red) v3(green)
+
 #kubectl run nginx --image=nginx
 pod/nginx created
 
