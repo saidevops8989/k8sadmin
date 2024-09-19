@@ -1,5 +1,5 @@
 
-rolling update demo - image: kodekloud/webapp-color:v2     v1(blue) v2(red) v3(green)
+rolling update demo - image: kodekloud/webapp-color:v2     v1(blue) v2(red) v3(green) strategy- recreate or rollingupdate 25% doen 25% up
 
 #kubectl run nginx --image=nginx
 pod/nginx created
