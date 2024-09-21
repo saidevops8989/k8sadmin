@@ -304,6 +304,264 @@ spec:
 
 
 
+######install kube sec for scanning images#####
+
+wget https://github.com/controlplaneio/kubesec/releases/download/v2.13.0/kubesec_linux_amd64.tar.gz
+
+tar -xvf  kubesec_linux_amd64.tar.gz
+
+mv kubesec /usr/bin/
+#####
+
+###kubesec scan /root/node.yaml  > /root/kubesec_report.json^C
+
+## cat /root/node.yaml 
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: "2024-09-21T11:41:42Z"
+  name: node
+  namespace: default
+  resourceVersion: "988"
+  uid: 71dad08e-244c-4181-9fbb-5e3b3ca2386d
+spec:
+  containers:
+  - image: gcr.io/google-samples/node-hello:1.0
+    imagePullPolicy: IfNotPresent
+    name: node
+    resources: {}
+    securityContext:
+      privileged: true
+      readOnlyRootFilesystem: false
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-vdh7g
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  nodeName: controlplane
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext: {}
+  serviceAccount: default
+  serviceAccountName: default
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - name: kube-api-access-vdh7g
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2024-09-21T11:41:42Z"
+    status: "False"
+    type: PodReadyToStartContainers
+  - lastProbeTime: null
+    lastTransitionTime: "2024-09-21T11:41:42Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2024-09-21T11:41:42Z"
+    message: 'containers with unready status: [node]'
+    reason: ContainersNotReady
+    status: "False"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2024-09-21T11:41:42Z"
+    message: 'containers with unready status: [node]'
+    reason: ContainersNotReady
+    status: "False"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2024-09-21T11:41:42Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - image: gcr.io/google-samples/node-hello:1.0
+    imageID: ""
+    lastState: {}
+    name: node
+    ready: false
+    restartCount: 0
+    started: false
+    state:
+      waiting:
+        reason: ContainerCreating
+  hostIP: 192.23.60.3
+  hostIPs:
+  - ip: 192.23.60.3
+  phase: Pending
+  qosClass: BestEffort
+  startTime: "2024-09-21T11:41:42Z"
+
+
+
+###  cat /root/kubesec_report.json 
+[
+  {
+    "object": "Pod/node.default",
+    "valid": true,
+    "fileName": "/root/node.yaml",
+    "message": "Failed with a score of -27 points",
+    "score": -27,
+    "scoring": {
+      "critical": [
+        {
+          "id": "Privileged",
+          "selector": "containers[] .securityContext .privileged == true",
+          "reason": "Privileged containers can allow almost completely unrestricted host access",
+          "points": -30
+        }
+      ],
+      "passed": [
+        {
+          "id": "ServiceAccountName",
+          "selector": ".spec .serviceAccountName",
+          "reason": "Service accounts restrict Kubernetes API access and should be configured with least privilege",
+          "points": 3
+        }
+      ],
+      "advise": [
+        {
+          "id": "ApparmorAny",
+          "selector": ".metadata .annotations .\"container.apparmor.security.beta.kubernetes.io/nginx\"",
+          "reason": "Well defined AppArmor policies may provide greater protection from unknown threats. WARNING: NOT PRODUCTION READY",
+          "points": 3
+        },
+        {
+          "id": "SeccompAny",
+          "selector": ".metadata .annotations .\"container.seccomp.security.alpha.kubernetes.io/pod\"",
+          "reason": "Seccomp profiles set minimum privilege and secure against unknown threats",
+          "points": 1
+        },
+        {
+          "id": "LimitsCPU",
+          "selector": "containers[] .resources .limits .cpu",
+          "reason": "Enforcing CPU limits prevents DOS via resource exhaustion",
+          "points": 1
+        },
+        {
+          "id": "LimitsMemory",
+          "selector": "containers[] .resources .limits .memory",
+          "reason": "Enforcing memory limits prevents DOS via resource exhaustion",
+          "points": 1
+        },
+        {
+          "id": "RequestsCPU",
+          "selector": "containers[] .resources .requests .cpu",
+          "reason": "Enforcing CPU requests aids a fair balancing of resources across the cluster",
+          "points": 1
+        },
+        {
+          "id": "RequestsMemory",
+          "selector": "containers[] .resources .requests .memory",
+          "reason": "Enforcing memory requests aids a fair balancing of resources across the cluster",
+          "points": 1
+        },
+        {
+          "id": "CapDropAny",
+          "selector": "containers[] .securityContext .capabilities .drop",
+          "reason": "Reducing kernel capabilities available to a container limits its attack surface",
+          "points": 1
+        },
+        {
+          "id": "CapDropAll",
+          "selector": "containers[] .securityContext .capabilities .drop | index(\"ALL\")",
+          "reason": "Drop all capabilities and add only those required to reduce syscall attack surface",
+          "points": 1
+        },
+        {
+          "id": "ReadOnlyRootFilesystem",
+          "selector": "containers[] .securityContext .readOnlyRootFilesystem == true",
+          "reason": "An immutable root filesystem can prevent malicious binaries being added to PATH and increase attack cost",
+          "points": 1
+        },
+        {
+          "id": "RunAsNonRoot",
+          "selector": "containers[] .securityContext .runAsNonRoot == true",
+          "reason": "Force the running image to run as a non-root user to ensure least privilege",
+          "points": 1
+        },
+        {
+          "id": "RunAsUser",
+          "selector": "containers[] .securityContext .runAsUser -gt 10000",
+          "reason": "Run as a high-UID user to avoid conflicts with the host's user table",
+          "points": 1
+        }
+      ]
+    }
+  }
+]
+
+###In node.yaml template change privileged: true to privileged: false under securityContext: need to updated to get scan PASS###
+
+
+##################trivy is tool used to scan docker images on ubntu instance ############################
+#Add the trivy-repo
+
+#apt-get  update
+apt-get install wget apt-transport-https gnupg lsb-release -y
+wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+
+#Update Repo and Install trivy
+apt-get update
+apt-get install trivy
+
+#trivy image  39286ab8a5e1 | head
+2024-09-21T08:05:01-04:00       INFO    [vuln] Vulnerability scanning is enabled
+2024-09-21T08:05:01-04:00       INFO    [secret] Secret scanning is enabled
+2024-09-21T08:05:01-04:00       INFO    [secret] If your scanning is slow, please try '--scanners vuln' to disable secret scanning
+2024-09-21T08:05:01-04:00       INFO    [secret] Please see also https://aquasecurity.github.io/trivy/v0.55/docs/scanner/secret#recommendation for faster secret detection
+2024-09-21T08:05:09-04:00       INFO    Detected OS     family="debian" version="12.7"
+2024-09-21T08:05:09-04:00       INFO    [debian] Detecting vulnerabilities...   os_version="12" pkg_num=149
+2024-09-21T08:05:09-04:00       INFO    Number of language-specific files       num=0
+2024-09-21T08:05:09-04:00       WARN    Using severities from other vendors for some vulnerabilities. Read https://aquasecurity.github.io/trivy/v0.55/docs/scanner/vulnerability#severity-selection for details.
+
+39286ab8a5e1 (debian 12.7)
+==========================
+Total: 145 (UNKNOWN: 0, LOW: 87, MEDIUM: 40, HIGH: 13, CRITICAL: 5)
+
+┌────────────────────┬─────────────────────┬──────────┬──────────────┬─────────────────────────┬─────────────────┬──────────────────────────────────────────────────────────────┐
+│      Library       │    Vulnerability    │ Severity │    Status    │    Installed Version    │  Fixed Version  │                            Title                             │
+├────────────────────┼─────────────────────┼──────────┼──────────────┼─────────────────────────┼─────────────────┼──────────────────────────────────────────────────────────────┤
+│ apt                │ CVE-2011-3374       │ LOW      │ affected     │ 2.6.1                   │                 │ It was found that apt-key in apt, all versions, do not       │
+│                    │                     │          │              │                         │                 │ correctly...  
+
+
+
+
+
+
+
 
 
 
