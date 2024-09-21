@@ -579,6 +579,11 @@ Total: 1344 (UNKNOWN: 3, LOW: 538, MEDIUM: 656, HIGH: 132, CRITICAL: 15)
 
 
 
+#trivy image --severity HIGH --output /root/python.txt public.ecr.aws/docker/library/python:3.9-bullseye
+
+#trivy image --input alpine.tar --format json --output /root/alpine.json
+
+
 
 
 
