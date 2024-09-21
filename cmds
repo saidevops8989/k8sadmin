@@ -558,6 +558,26 @@ Total: 145 (UNKNOWN: 0, LOW: 87, MEDIUM: 40, HIGH: 13, CRITICAL: 5)
 
 
 
+#crictl pull public.ecr.aws/docker/library/python:3.12.4
+
+## Scan the vulnerability
+trivy image --output /root/python_12.txt public.ecr.aws/docker/library/python:3.12.4
+
+##head /root/python_12.txt public.ecr.aws/docker/library/python:3.12.4
+==> /root/python_12.txt <==
+
+public.ecr.aws/docker/library/python:3.12.4 (debian 12.6)
+=========================================================
+Total: 1344 (UNKNOWN: 3, LOW: 538, MEDIUM: 656, HIGH: 132, CRITICAL: 15)
+
+┌──────────────────────────────┬─────────────────────┬──────────┬──────────────┬──────────────────────────────┬────────────────────┬──────────────────────────────────────────────────────────────┐
+│           Library            │    Vulnerability    │ Severity │    Status    │      Installed Version       │   Fixed Version    │                            Title                             │
+├──────────────────────────────┼─────────────────────┼──────────┼──────────────┼──────────────────────────────┼────────────────────┼──────────────────────────────────────────────────────────────┤
+│ apt                          │ CVE-2011-3374       │ LOW      │ affected     │ 2.6.1                        │                    │ It was found that apt-key in apt, all versions, do not       │
+│                              │                     │          │              │                              │                    │ correctly...                 
+
+
+
 
 
 
